@@ -2,8 +2,9 @@ import asyncio
 from typing import Dict, Any, Optional, List
 from app.integrations.twilio_client import twilio_client
 from app.integrations.whisper_client import whisper_client
-from app.integrations.tts_client import tts_client
 from app.integrations.openai_client import openai_client
+from app.integrations.tts_client import tts_client
+from app.integrations.elevenlabs_tts_client import elevenlabs_tts_client
 from app.agents.calling_agent import CallingAgent
 from app.schemas.call_schemas import LeadData, CallResult
 from app.utils.logger import logger
@@ -17,8 +18,7 @@ class CallService:
         
         agent = CallingAgent(
             customer_name=lead.name,
-            customer_context=lead.metadata or {"context": lead.context},
-            integration_config=integrations
+            customer_context=lead.metadata or {"context": lead.context}
         )
         
         response = await twilio_client.initiate_call(
@@ -57,7 +57,12 @@ class CallService:
                     "content": response_text
                 })
                 
-                audio_response = await tts_client.generate_speech(response_text)
+                # Prefer ElevenLabs if API key is set, else fallback to OpenAI TTS
+                if settings.ELEVENLABS_API_KEY:
+                    audio_response = await elevenlabs_tts_client.generate_speech(response_text)
+                else:
+                    audio_response = await tts_client.generate_speech(response_text)
+                
                 return audio_response
                 
         except Exception as e:

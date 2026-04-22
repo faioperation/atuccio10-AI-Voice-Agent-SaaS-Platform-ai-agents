@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     OPENAI_TTS_MODEL: str = "tts-1"
     OPENAI_TTS_VOICE: str = "alloy"
     
+    # ElevenLabs (Voice)
+    ELEVENLABS_API_KEY: Optional[str] = None
+    ELEVENLABS_VOICE_ID: Optional[str] = "21m00Tcm4TlvDq8ikWAM" # Default voice
+    
     # Twilio (Telephony)
     TWILIO_ACCOUNT_SID: str
     TWILIO_AUTH_TOKEN: str
