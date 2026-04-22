@@ -1,35 +1,30 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks, UploadFile, File
 import shutil
 import os
-from app.schemas.call_schemas import CallInitiateRequest, CallResponse, VapiWebhookEvent, MessageProcessRequest
+from app.schemas.call_schemas import CallInitiateRequest, CallResponse, TwilioWebhookEvent, MessageProcessRequest
 from app.services.call_service import call_service
+from app.rag.engine import rag_engine
 from app.utils.logger import logger
 
 router = APIRouter()
 
 @router.post("/start-call", response_model=CallResponse)
 async def start_call(request: CallInitiateRequest):
-    """
-    Triggers an outbound AI call via Vapi for a specific lead.
-    """
     try:
-        response = await call_service.initiate_call(request.lead, request.integrations)
+        response = await call_service.initiate_call(request.lead)
         return CallResponse(
             status="success",
-            call_id=response.get("id"),
+            call_sid=response.get("call_sid"),
             message="Call initiated successfully"
         )
     except Exception as e:
         logger.error(f"Failed to start call: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/webhook/vapi")
-async def vapi_webhook(event: VapiWebhookEvent):
-    """
-    Handles Vapi status updates, transcripts, and call ending events.
-    """
+@router.post("/webhook/twilio")
+async def twilio_webhook(event: TwilioWebhookEvent):
     try:
-        result = await call_service.handle_webhook(event.message)
+        result = await call_service.handle_webhook(event.event)
         return result
     except Exception as e:
         logger.error(f"Webhook error: {str(e)}")
@@ -37,28 +32,17 @@ async def vapi_webhook(event: VapiWebhookEvent):
 
 @router.post("/process-message")
 async def process_message(request: MessageProcessRequest):
-    """
-    Manually process a conversation turn or use as a fallback brain.
-    """
     try:
-        # This could interact with the CallingAgent directly
-        # For simplicity, we just log and return a stub response here
-        # or integrate it with the service layer
-        logger.info(f"Processing message for call {request.call_id}: {request.transcript}")
-        return {"role": "assistant", "content": "I am processing your message."}
+        logger.info(f"Processing message for call {request.call_sid}: {request.transcript}")
+        return {"status": "ok", "message": "Message processed"}
     except Exception as e:
         logger.error(f"Processing error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/end-call")
-async def end_call(call_id: str):
-    """
-    Finalize and return the result for a given call.
-    """
+@router.post("/end-call/{call_sid}")
+async def end_call(call_sid: str):
     try:
-        # In a real scenario, this would trigger the finalization logic
-        # For now, we'll try to find the agent and return the result
-        result = await call_service.finalize_call(call_id, {"transcript": "Call ended manually."})
+        result = await call_service.finalize_call(call_sid, {})
         return result
     except Exception as e:
         logger.error(f"End call error: {str(e)}")
@@ -66,9 +50,6 @@ async def end_call(call_id: str):
 
 @router.post("/upload-knowledge")
 async def upload_knowledge(file: UploadFile = File(...)):
-    """
-    Upload a DOCX file to the knowledge base and re-index the RAG engine.
-    """
     if not file.filename.endswith(".docx"):
         raise HTTPException(status_code=400, detail="Only .docx files are supported.")
     
@@ -81,7 +62,6 @@ async def upload_knowledge(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
-    # Re-build RAG index with the new file
     try:
         rag_engine.build_index()
         logger.info(f"Successfully uploaded and indexed: {file.filename}")

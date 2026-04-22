@@ -7,27 +7,21 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     
-    # OpenAI
+    # OpenAI (GPT-4 + TTS)
     OPENAI_API_KEY: str
     OPENAI_MODEL: str = "gpt-4-turbo-preview"
-    
-    # Vapi
-    VAPI_API_KEY: str
-    VAPI_BASE_URL: str = "https://api.vapi.ai"
-    VAPI_ASSISTANT_ID: Optional[str] = None
-    VAPI_PHONE_NUMBER_ID: Optional[str] = None
-    
-    # ElevenLabs (Voice)
-    ELEVENLABS_API_KEY: Optional[str] = None
-    ELEVENLABS_VOICE_ID: Optional[str] = "21m00Tcm4TlvDq8ikWAM" # Default voice
-    
-    # Deepgram (Transcription)
-    DEEPGRAM_API_KEY: Optional[str] = None
+    OPENAI_TTS_MODEL: str = "tts-1"
+    OPENAI_TTS_VOICE: str = "alloy"
     
     # Twilio (Telephony)
-    TWILIO_ACCOUNT_SID: Optional[str] = None
-    TWILIO_AUTH_TOKEN: Optional[str] = None
-    TWILIO_PHONE_NUMBER: Optional[str] = None
+    TWILIO_ACCOUNT_SID: str
+    TWILIO_AUTH_TOKEN: str
+    TWILIO_PHONE_NUMBER: str
+    
+    # FasterWhisper (Local Transcription)
+    WHISPER_MODEL: str = "base"
+    WHISPER_DEVICE: str = "cpu"
+    WHISPER_COMPUTE_TYPE: str = "float32"
     
     # GoHighLevel (CRM)
     GHL_API_KEY: Optional[str] = None
