@@ -12,3 +12,5 @@ python-dotenv
 loguru
 faster-whisper
 aiohttp
+twilio
+websockets

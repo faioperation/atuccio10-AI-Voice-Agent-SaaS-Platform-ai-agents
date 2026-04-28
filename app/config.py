@@ -6,6 +6,15 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "AI Outbound Calling Engine"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
+
+    # Server (required for Twilio webhooks & TwiML)
+    SERVER_BASE_URL: str = "https://your-server.com"
+
+    # CORS: comma-separated origins, or "*" for all
+    ALLOWED_ORIGINS: str = "*"
+
+    # API Security: set a secret key to enable Bearer token auth
+    API_SECRET_KEY: Optional[str] = None
     
     # OpenAI (GPT-4 + TTS)
     OPENAI_API_KEY: str
@@ -13,9 +22,9 @@ class Settings(BaseSettings):
     OPENAI_TTS_MODEL: str = "tts-1"
     OPENAI_TTS_VOICE: str = "alloy"
     
-    # ElevenLabs (Voice)
+    # ElevenLabs (Voice — optional)
     ELEVENLABS_API_KEY: Optional[str] = None
-    ELEVENLABS_VOICE_ID: Optional[str] = "21m00Tcm4TlvDq8ikWAM" # Default voice
+    ELEVENLABS_VOICE_ID: str = "21m00Tcm4TlvDq8ikWAM"  # Default voice
     
     # Twilio (Telephony)
     TWILIO_ACCOUNT_SID: str
